@@ -1,7 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html, body, #app, .page{ @apply w-full h-full scroll-smooth }
 
-.page{ @apply flex flex-col justify-center items-center bg-[#419764] p-24 }
+.page{ 
+    font-family: 'Ubuntu', sans-serif;
+    @apply flex flex-col justify-center items-center bg-[#419764] p-24
+}

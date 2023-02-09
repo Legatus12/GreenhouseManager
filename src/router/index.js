@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Dashboad from '../views/Dashboard.vue'
-import Config from '../views/Config.vue'
+import Settings from '../views/Settings.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,9 +17,9 @@ const router = createRouter({
       component: Dashboad
     },
     {
-      path: '/config',
-      name: 'config',
-      component: Config
+      path: '/settings',
+      name: 'settings',
+      component: Settings
     }
   ]
 })
