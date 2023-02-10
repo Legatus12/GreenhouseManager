@@ -8,5 +8,5 @@ html, body, #app, .page{ @apply w-full h-full scroll-smooth }
 
 .page{ 
     font-family: 'Ubuntu', sans-serif;
-    @apply flex flex-col justify-center items-center bg-[#419764] p-24
+    @apply flex flex-col justify-center items-center bg-[#419764]
 }

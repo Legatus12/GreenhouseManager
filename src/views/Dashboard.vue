@@ -4,11 +4,11 @@
             <div class="header">
                 <div class="title">
                     <h1>Greenhouses</h1>
-                    <div class="settings" @click="loadSettings()">
+                    <div class="settings" @click="loadSettings()" title="settings">
                         <img src="@/assets/img/settings.png">
                     </div>
                 </div>
-                <div class="logout" @click="logout()">
+                <div class="logout" @click="logout()" title="log out">
                     <img src="@/assets/img/logout.png">
                 </div>
             </div>
