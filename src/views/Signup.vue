@@ -1,12 +1,12 @@
 <template>
     <div class="page">
-        <div class="login">
-            <form @submit.prevent="login()">
-            <h1>Welcome to Greenhouse Manager</h1>
+        <div class="signup">
+            <form @submit.prevent="signup()">
+            <h1>Create an account</h1>
                 <input v-model="username" id="username" type="text" placeholder="username">
                 <input v-model="password" id="password" type="password" placeholder="password">
-                <button>log in</button>
-                <p @click="router.push({ name: 'signup' })">or sign up</p>
+                <button>sign up</button>
+                <p @click="router.push({ name: 'login' })">or log in</p>
             </form>
         </div>
     </div>
@@ -22,7 +22,7 @@ import { useRouter } from 'vue-router'
 
 import { useStore } from '@/stores/user.js'
 
-import { getUser } from '@/firebase.js'
+import { addUser, getUser } from '@/firebase.js'
 
 //
 
@@ -35,20 +35,19 @@ const user = useStore()
 const username = ref("")
 const password = ref("")
 
-const login = () => {
-    if(username.value != ''){
-        getUser(username.value, (docs) => {
-            if(docs.size == 1){
-                docs.forEach(doc => {
-                    if(password.value === doc.data().password){
-                        user.setUserID(doc.id)
-                        user.setUsername(doc.data().username)
-                        router.push({ name: 'dashboard' })
-                    } else alert('invalid password')
+const signup = () => {
+    if(username.value != '' || password.value != ''){
+        getUser(username.value, async(docs) => {
+            if(docs.size < 1){
+                await addUser({
+                    username : username.value,
+                    password : password.value
                 })
-            } else alert('user does not exist')
+                alert('user succesfully created')
+                router.push({ name: 'dashboard' })
+            } else alert('user already exists')
         })
-    } else alert('username field is empty')
+    } else alert('error: empty fields')
 }
 
 </script>
@@ -56,7 +55,7 @@ const login = () => {
 
 <style scoped>
 
-    .login{ @apply text-white }
+    .signup{ @apply text-white }
 
     form{ @apply flex flex-col items-center gap-12 text-xl }
 

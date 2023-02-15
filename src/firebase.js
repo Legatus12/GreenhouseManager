@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection } from 'firebase/firestore'
+import { getFirestore, collection, onSnapshot, query, where, addDoc } from 'firebase/firestore'
 
 export const firebaseApp = initializeApp({
     apiKey: "AIzaSyA2S2l83X8pdsg1V_WgAuy01JJyJeg39fI",
@@ -13,4 +13,10 @@ export const firebaseApp = initializeApp({
 
 const db = getFirestore(firebaseApp)
 
-export const users = collection(db, 'users')
+export const getUser = (username, callback) => onSnapshot(query(collection(db, 'users'), where("username", "==", username)), callback)
+
+export const addUser = (user) => addDoc(collection(db, 'users'), user)
+
+export const getSpaces = (id, callback) => onSnapshot(collection(db, `users/${id}/spaces`), callback)
+
+export const getDevices = (id, space, callback) => onSnapshot(collection(db, `users/${id}/spaces/${space}/devices`), callback)

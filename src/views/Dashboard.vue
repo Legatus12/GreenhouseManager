@@ -12,8 +12,11 @@
                     <img src="@/assets/img/logout.png">
                 </div>
             </div>
-            <div class="greehouses">
-                
+            <div class="greenhouses">
+                <div v-for="space in spaces" class="space">
+                    <div>{{ space.name }}</div>
+                    <div v-for="device in space.devices">{{ device  }}</div>
+                </div>
             </div>
         </div>
     </div>
@@ -23,17 +26,41 @@
 <script setup>
 
 /* imports */
-import { ref } from 'vue'
+import { ref, shallowRef, reactive, onMounted } from 'vue'
 
 import { useRouter } from 'vue-router'
+
+import { useStore } from '@/stores/user.js'
+
+import { getSpaces, getDevices } from '@/firebase.js'
 
 //
 
 const router = useRouter()
 
+const user = useStore()
+
 //
 
+const spaces = ref([])
 
+onMounted(() => {
+    getSpaces(user.getUserID(), (docs) => {
+        docs.forEach(async(doc) => {
+            const space = doc.id
+            const name = doc.data().name
+            const devices = []
+            await getDevices(user.getUserID(), space, (docs) => {
+                docs.forEach(doc => {
+                    devices.push(doc.data())
+                console.log(doc.data())
+                })
+            })
+            spaces.value.push({name, devices})
+        })
+    })
+    spaces.value = [...spaces.value]
+})
 
 //
 
@@ -46,7 +73,7 @@ const logout = () => router.push({ name: 'login' })
 
 <style scoped>
 
-.dashboard{ @apply w-full h-full }
+.dashboard{ @apply w-full h-full flex flex-col }
 
 .header{ @apply w-full flex justify-between items-center p-8 border-solid border-b-2 border-white }
 
@@ -55,5 +82,7 @@ const logout = () => router.push({ name: 'login' })
 .settings{ @apply hover:rotate-90 duration-300 cursor-pointer }
 
 .logout{ @apply hover:scale-125 duration-300 cursor-pointer }
+
+.greenhouses{ @apply w-full h-full overflow-y-auto p-12 }
 
 </style>
