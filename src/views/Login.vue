@@ -1,5 +1,5 @@
 <template>
-    <div class="page">
+    <div class="page bg-green">
         <div class="login">
             <form @submit.prevent="login()">
             <h1>Welcome to Greenhouse Manager</h1>
@@ -37,12 +37,11 @@ const password = ref("")
 
 const login = () => {
     if(username.value != ''){
-        getUser(username.value, (docs) => {
-            if(docs.size == 1){
-                docs.forEach(doc => {
-                    if(password.value === doc.data().password){
-                        user.setUserID(doc.id)
-                        user.setUsername(doc.data().username)
+        getUser(username.value, (userDocs) => {
+            if(userDocs.size == 1){
+                userDocs.forEach(userDoc => {
+                    if(password.value === userDoc.data().password){
+                        user.setID(userDoc.id)
                         router.push({ name: 'dashboard' })
                     } else alert('invalid password')
                 })

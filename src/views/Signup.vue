@@ -1,5 +1,5 @@
 <template>
-    <div class="page">
+    <div class="page bg-darkgreen">
         <div class="signup">
             <form @submit.prevent="signup()">
             <h1>Create an account</h1>
@@ -44,7 +44,7 @@ const signup = () => {
                     password : password.value
                 })
                 alert('user succesfully created')
-                router.push({ name: 'dashboard' })
+                router.push({ name: 'login' })
             } else alert('user already exists')
         })
     } else alert('error: empty fields')
@@ -61,7 +61,7 @@ const signup = () => {
 
     h1{ @apply font-bold }
 
-    input{ @apply bg-green border-solid border-b-2 border-white focus:outline-none text-white placeholder:text-lightgray placeholder:font-light p-4 }
+    input{ @apply bg-darkgreen border-solid border-b-2 border-white focus:outline-none text-white placeholder:text-lightgray placeholder:font-light p-4 }
 
     button{ @apply w-full bg-white text-[#232323] focus:outline-none focus:bg-lightgray hover:bg-lightgray p-2 rounded-xl shadow-2xl }
 

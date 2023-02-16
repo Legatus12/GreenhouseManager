@@ -14,9 +14,10 @@ export const firebaseApp = initializeApp({
 const db = getFirestore(firebaseApp)
 
 export const getUser = (username, callback) => onSnapshot(query(collection(db, 'users'), where("username", "==", username)), callback)
-
 export const addUser = (user) => addDoc(collection(db, 'users'), user)
 
-export const getSpaces = (id, callback) => onSnapshot(collection(db, `users/${id}/spaces`), callback)
+export const getSpaces = (user, callback) => onSnapshot(query(collection(db, 'spaces'), where("user", "==", user)), callback)
+export const addSpace = (space) => addDoc(collection(db, 'spaces'), space)
 
-export const getDevices = (id, space, callback) => onSnapshot(collection(db, `users/${id}/spaces/${space}/devices`), callback)
+export const getDevices = (user, callback) => onSnapshot(query(collection(db, 'devices'), where("user", "==", user)), callback)
+export const addDevice = (device) => addDoc(collection(db, 'devices'), device)
