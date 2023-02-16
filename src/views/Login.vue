@@ -2,11 +2,12 @@
     <div class="page bg-green">
         <div class="login">
             <form @submit.prevent="login()">
-            <h1>Welcome to Greenhouse Manager</h1>
+            <h1>manager</h1>
                 <input v-model="username" id="username" type="text" placeholder="username">
                 <input v-model="password" id="password" type="password" placeholder="password">
                 <button>log in</button>
-                <p @click="router.push({ name: 'signup' })">or sign up</p>
+                <p class="message">{{ message }}</p>
+                <p class="signup" @click="router.push({ name: 'signup' })">or sign up</p>
             </form>
         </div>
     </div>
@@ -32,6 +33,8 @@ const user = useStore()
 
 //
 
+const message = ref("")
+
 const username = ref("")
 const password = ref("")
 
@@ -43,11 +46,11 @@ const login = () => {
                     if(password.value === userDoc.data().password){
                         user.setID(userDoc.id)
                         router.push({ name: 'dashboard' })
-                    } else alert('invalid password')
+                    } else message.value = 'invalid password'
                 })
-            } else alert('user does not exist')
+            } else message.value = 'user does not exist'
         })
-    } else alert('username field is empty')
+    } else message.value = 'username field is empty'
 }
 
 </script>
@@ -65,6 +68,8 @@ const login = () => {
 
     button{ @apply w-full bg-white text-[#232323] focus:outline-none focus:bg-lightgray hover:bg-lightgray p-2 rounded-xl shadow-2xl }
 
-    p{ @apply w-fit font-light hover:underline cursor-pointer }
+    .message{ @apply text-darkgreen italic }
+
+    .signup{ @apply w-fit font-light hover:underline cursor-pointer }
 
 </style>

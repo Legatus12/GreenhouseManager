@@ -2,11 +2,12 @@
     <div class="page bg-darkgreen">
         <div class="signup">
             <form @submit.prevent="signup()">
-            <h1>Create an account</h1>
+            <h1>create an account</h1>
                 <input v-model="username" id="username" type="text" placeholder="username">
                 <input v-model="password" id="password" type="password" placeholder="password">
                 <button>sign up</button>
-                <p @click="router.push({ name: 'login' })">or log in</p>
+                <p class="message">{{ message }}</p>
+                <p class="login" @click="router.push({ name: 'login' })">or log in</p>
             </form>
         </div>
     </div>
@@ -20,34 +21,31 @@ import { ref } from 'vue'
 
 import { useRouter } from 'vue-router'
 
-import { useStore } from '@/stores/user.js'
-
 import { addUser, getUser } from '@/firebase.js'
 
 //
 
 const router = useRouter()
 
-const user = useStore()
-
 //
+
+const message = ref("")
 
 const username = ref("")
 const password = ref("")
 
 const signup = () => {
-    if(username.value != '' || password.value != ''){
+    if(username.value != "" || password.value != ""){
         getUser(username.value, async(docs) => {
             if(docs.size < 1){
                 await addUser({
                     username : username.value,
                     password : password.value
                 })
-                alert('user succesfully created')
                 router.push({ name: 'login' })
-            } else alert('user already exists')
+            } else message.value = 'user already exists'
         })
-    } else alert('error: empty fields')
+    } else message.value = 'empty fields'
 }
 
 </script>
@@ -65,6 +63,8 @@ const signup = () => {
 
     button{ @apply w-full bg-white text-[#232323] focus:outline-none focus:bg-lightgray hover:bg-lightgray p-2 rounded-xl shadow-2xl }
 
-    p{ @apply w-fit font-light hover:underline cursor-pointer }
+    .message{ @apply text-lightgreen italic }
+
+    .login{ @apply w-fit font-light hover:underline cursor-pointer }
 
 </style>

@@ -10,7 +10,9 @@ module.exports = {
       'green': '#419764',
       'white': '#f2f2f2',
       'lightgray': '#d6d6d6',
-      'darkgreen' : '#264a33'
+      'darkgreen' : '#264a33',
+      'black' : '#121212',
+      'lightgreen' : '#86cba2'
     }
   },
   plugins: [],
