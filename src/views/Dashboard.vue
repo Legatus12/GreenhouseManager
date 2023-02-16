@@ -61,7 +61,7 @@
                 <p>{{ message }}</p>
                 <div class="button-container">
                     <button @click="deviceModal = false" class="cancel">cancel</button>
-                    <button class="create">create</button>
+                    <button @click="newDevice()" class="create">create</button>
                 </div>
             </div>
         </div>
@@ -111,11 +111,13 @@ const newSpace = () => {
 }
 
 const newDevice = (space) => {
-    addDevice({
-        name: "newDEvice",
-        space: space,
-        user: user.getID()
-    })
+    if(false){
+        addDevice({
+            name: newDeviceName.value,
+            space: space,
+            user: user.getID()
+        })
+    } else message.value = '???'
 }
 
 const loadSpaces = () => {
