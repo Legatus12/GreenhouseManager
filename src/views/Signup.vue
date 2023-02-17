@@ -63,7 +63,7 @@ const signup = () => {
 
     button{ @apply w-full bg-white text-[#232323] focus:outline-none focus:bg-lightgray hover:bg-lightgray p-2 rounded-xl shadow-2xl }
 
-    .message{ @apply text-lightgreen italic }
+    .message{ @apply text-lightgreen italic h-4 }
 
     .login{ @apply w-fit font-light hover:underline cursor-pointer }
 

@@ -20,7 +20,7 @@
                             <h1 class="id">{{ space.id }}</h1>
                         </div>
                         <div class="toggle" @click="space.control ? space.control = false : space.control = true">
-                            <img src="@/assets/img/menu.png" class="w-12">
+                            <img src="@/assets/img/menu.png" class="w-8">
                         </div>
                     </div>
                     <div v-if="space.control == true" class="devices">
@@ -28,11 +28,11 @@
                             {{ device  }}
                         </div>
                         <div class="flex justify-end">
-                            <button class="new-device" @click="deviceModal = true">add new device</button>
+                            <button class="new-device" @click="{deviceModal = true; newDeviceSpace = space.id}">+ add new device</button>
                         </div>
                     </div>
                 </div>
-                <button class="new-space" @click="spaceModal = true">+</button>
+                <button class="new-space" @click="spaceModal = true">+ add new greenhouse</button>
             </div>
         </div>
     </div>
@@ -43,9 +43,9 @@
                     <label>New space</label>
                     <input placeholder="name" type="text" v-model="newSpaceName">
                 </form>
-                <p class="text-[#f1121f]">{{ message }}</p>
+                <p class="message">{{ message }}</p>
                 <div class="button-container">
-                    <button @click="spaceModal = false" class="cancel">cancel</button>
+                    <button @click="{spaceModal = false; message = ''}" class="cancel">cancel</button>
                     <button @click="newSpace()" class="create">create</button>
                 </div>
             </div>
@@ -56,11 +56,15 @@
             <div class="modal">
                 <form>
                     <label>New device</label>
-                    <input placeholder="name" type="text">
+                    <input placeholder="name" v-model="newDeviceName" type="text">
+                    <select v-model="newDeviceUnit">
+                        <option value="unit" selected disabled>unit</option>
+                        <option v-for="unit in units">{{ unit.measurement }} in {{ unit.unit }}</option>
+                    </select>
                 </form>
-                <p>{{ message }}</p>
+                <p class="message">{{ message }}</p>
                 <div class="button-container">
-                    <button @click="deviceModal = false" class="cancel">cancel</button>
+                    <button @click="{deviceModal = false; message = ''}" class="cancel">cancel</button>
                     <button @click="newDevice()" class="create">create</button>
                 </div>
             </div>
@@ -78,7 +82,7 @@ import { useRouter } from 'vue-router'
 
 import { useStore } from '@/stores/user.js'
 
-import { getSpaces, getDevices, addSpace, addDevice } from '@/firebase.js'
+import { getSpaces, getDevices, addSpace, addDevice, getUnits } from '@/firebase.js'
 
 //
 
@@ -91,11 +95,16 @@ const user = useStore()
 const spaces = ref([])
 const devices = ref([])
 
+const units = ref([])
+
 const spaceModal = ref(false)
 const deviceModal = ref(false)
 
 const newSpaceName = ref('')
+
 const newDeviceName = ref('')
+const newDeviceUnit = ref('unit')
+const newDeviceSpace = ref('')
 
 const message = ref('')
 
@@ -105,40 +114,59 @@ const newSpace = () => {
             name:  newSpaceName.value,
             user: user.getID()
         })
+        newSpaceName.value = ''
+        //
         spaceModal.value = false
     }
-    else message.value = 'name is empty'
+    else message.value = 'your new greenhouse needs a name !'
 }
 
-const newDevice = (space) => {
-    if(false){
+const newDevice = () => {
+    if(newDeviceName.value == '')
+        message.value = 'your new device needs a name !'
+    else if(newDeviceUnit.value == 'unit')
+        message.value = 'select an unit to measure'
+    else {
         addDevice({
             name: newDeviceName.value,
-            space: space,
+            space: newDeviceSpace.value,
             user: user.getID()
         })
-    } else message.value = '???'
+        newDeviceName.value = ''
+        newDeviceUnit.value = 'unit'
+        newDeviceSpace.value = ''
+        //
+        deviceModal.value = false
+    }
 }
 
 const loadSpaces = () => {
     getSpaces(user.getID(), (spaceDocs) => {
         spaces.value = []
-        spaceDocs.forEach(async(spaceDoc) => {
+        spaceDocs.forEach(spaceDoc => {
             spaces.value.push({id: spaceDoc.id, name: spaceDoc.data().name, control : false})
         })
     })
 }
 
 const loadDevices = () => {
-    getDevices(user.getID(), (docs) => {
+    getDevices(user.getID(), deviceDocs => {
         devices.value = []
-        docs.forEach(doc => devices.value.push({id: doc.id, data: doc.data()}))
+        deviceDocs.forEach(deviceDoc => devices.value.push({id: deviceDoc.id, data: deviceDoc.data()}))
+    })
+}
+
+const loadUnits = () => {
+    getUnits((unitDocs) => {
+        units.value = []
+        unitDocs.forEach(unitDoc => units.value.push(unitDoc.data()))
     })
 }
 
 onMounted(() => {
     loadSpaces()
     loadDevices()
+    loadUnits()
 })
 
 //
@@ -181,11 +209,13 @@ const logout = () => {
 
 .modal{ @apply relative bg-white p-12 flex flex-col gap-8 rounded-2xl }
 
+.message{ @apply text-[#f1121f] h-4 }
+
 form{ @apply w-96 flex flex-col gap-4 }
 
 label{ @apply font-bold }
 
-input{ @apply p-4 rounded-2xl }
+input, select{ @apply p-4 rounded-2xl }
 
 .button-container{ @apply flex justify-end gap-4 }
 
@@ -195,8 +225,8 @@ input{ @apply p-4 rounded-2xl }
 
 .create{ @apply text-white bg-green hover:bg-lightgreen }
 
-.new-space{ @apply bg-lightgreen hover:bg-[#c1e4cf] duration-200 p-2 rounded-2xl }
+.new-space{ @apply font-bold hover:bg-[#d6d6d6] duration-200 p-2 rounded-2xl }
 
-.new-device{ @apply bg-white p-2 rounded-2xl mt-4 hover:bg-[#d6d6d6] duration-200 }
+.new-device{ @apply text-white font-bold p-2 rounded-2xl mt-4 hover:bg-lightgreen duration-200 }
 
 </style>

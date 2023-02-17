@@ -21,3 +21,5 @@ export const addSpace = (space) => addDoc(collection(db, 'spaces'), space)
 
 export const getDevices = (user, callback) => onSnapshot(query(collection(db, 'devices'), where("user", "==", user)), callback)
 export const addDevice = (device) => addDoc(collection(db, 'devices'), device)
+
+export const getUnits = (callback) => onSnapshot(collection(db, 'units'), callback)
