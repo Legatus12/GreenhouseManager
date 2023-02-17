@@ -24,8 +24,25 @@
                         </div>
                     </div>
                     <div v-if="space.control == true" class="devices">
-                        <div v-for="device in devices.filter(x => x.data.space == space.id)" class="device">
-                            {{ device  }}
+                        <div v-for="device in devices.filter(x => x.data.space == space.id)">
+                            <div v-if="!device.updating" class="device">
+                                <div class="flex gap-8 items-center">
+                                    <h1 class="name">{{ device.data.name }}</h1>
+                                    <h1 class="id">{{ device.id }}</h1>
+                                </div>
+                                <div @click="device.updating = true">
+                                    <img src="@/assets/img/edit.png" class="w-8">
+                                </div>
+                            </div>
+                            <div v-else class="device">
+                                <div class="flex gap-8 items-center">
+                                    <input type="text" :value="device.data.name">
+                                    <input type="text" :value="device.id">
+                                </div>
+                                <div @click="device.updating = false">
+                                    <img src="@/assets/img/done.png" class="w-8">
+                                </div>
+                            </div>
                         </div>
                         <div class="flex justify-end">
                             <button class="new-device" @click="{deviceModal = true; newDeviceSpace = space.id}">+ add new device</button>
@@ -82,7 +99,7 @@ import { useRouter } from 'vue-router'
 
 import { useStore } from '@/stores/user.js'
 
-import { getSpaces, getDevices, addSpace, addDevice, getUnits } from '@/firebase.js'
+import { getSpaces, getDevices, addSpace, addDevice, deleteDevice, getUnits } from '@/firebase.js'
 
 //
 
@@ -130,6 +147,7 @@ const newDevice = () => {
         addDevice({
             name: newDeviceName.value,
             space: newDeviceSpace.value,
+            value: '-',
             user: user.getID()
         })
         newDeviceName.value = ''
@@ -139,6 +157,7 @@ const newDevice = () => {
         deviceModal.value = false
     }
 }
+
 
 const loadSpaces = () => {
     getSpaces(user.getID(), (spaceDocs) => {
@@ -152,7 +171,7 @@ const loadSpaces = () => {
 const loadDevices = () => {
     getDevices(user.getID(), deviceDocs => {
         devices.value = []
-        deviceDocs.forEach(deviceDoc => devices.value.push({id: deviceDoc.id, data: deviceDoc.data()}))
+        deviceDocs.forEach(deviceDoc => devices.value.push({id: deviceDoc.id, data: deviceDoc.data(), updatig : false}))
     })
 }
 
@@ -203,7 +222,7 @@ const logout = () => {
 
 .devices{ @apply bg-green p-4 rounded-b-2xl flex flex-col gap-4 }
 
-.device{ @apply bg-none }
+.device{ @apply flex justify-between items-center h-16 }
 
 .modal-bg{ @apply fixed top-0 left-0 w-full h-full flex justify-center items-center bg-opacity-50 bg-black }
 
