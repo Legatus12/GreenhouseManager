@@ -26,21 +26,24 @@
                     <div v-if="space.control == true" class="devices">
                         <div v-for="device in devices.filter(x => x.data.space == space.id)">
                             <div v-if="!device.updating" class="device">
-                                <div class="flex gap-8 items-center">
-                                    <h1 class="name">{{ device.data.name }}</h1>
-                                    <h1 class="id">{{ device.id }}</h1>
+                                <h1 class="name">{{ device.data.name }}</h1>
+                                <div class="device-data">
+                                    <div>{{ device.data.value }}</div>
+                                    <div>{{ device.data.unit }}</div>
                                 </div>
-                                <div @click="device.updating = true">
-                                    <img src="@/assets/img/edit.png" class="w-8">
+                                <div @click="device.updating = true" class="device-button">
+                                    <img src="@/assets/img/edit.png" class="w-6">
                                 </div>
                             </div>
-                            <div v-else class="device">
-                                <div class="flex gap-8 items-center">
-                                    <input type="text" :value="device.data.name">
-                                    <input type="text" :value="device.id">
-                                </div>
-                                <div @click="device.updating = false">
-                                    <img src="@/assets/img/done.png" class="w-8">
+                            <div v-else class="device justify-between">
+                                <input type="text" :value="device.data.name" class="device-input">
+                                <div class="flex">
+                                    <div @click="deleteDevice(device.id)" class="device-button">
+                                        <img src="@/assets/img/trash.png" class="w-6">
+                                    </div>
+                                    <div @click="device.updating = false" class="device-button">
+                                        <img src="@/assets/img/done.png" class="w-6">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -76,7 +79,7 @@
                     <input placeholder="name" v-model="newDeviceName" type="text">
                     <select v-model="newDeviceUnit">
                         <option value="unit" selected disabled>unit</option>
-                        <option v-for="unit in units">{{ unit.measurement }} in {{ unit.unit }}</option>
+                        <option v-for="unit in units" :value="unit.unit">{{ unit.measurement }} in {{ unit.unit }}</option>
                     </select>
                 </form>
                 <p class="message">{{ message }}</p>
@@ -128,7 +131,7 @@ const message = ref('')
 const newSpace = () => {
     if(newSpaceName.value != ''){
         addSpace({
-            name:  newSpaceName.value,
+            name: newSpaceName.value,
             user: user.getID()
         })
         newSpaceName.value = ''
@@ -148,6 +151,7 @@ const newDevice = () => {
             name: newDeviceName.value,
             space: newDeviceSpace.value,
             value: '-',
+            unit: newDeviceUnit.value,
             user: user.getID()
         })
         newDeviceName.value = ''
@@ -214,15 +218,21 @@ const logout = () => {
 
 .space-header{ @apply bg-darkgreen p-4 flex justify-between items-center }
 
-.name{ @apply text-xl text-white font-bold }
+.name{ @apply text-xl text-white font-bold p-2 basis-1/2 }
 
 .id{  @apply text-[#d6d6d6] font-thin }
 
-.toggle{ @apply hover:bg-[#2f5d40] duration-200 cursor-pointer rounded-2xl p-1 }
+.toggle{ @apply hover:bg-[#2f5d40] duration-200 cursor-pointer rounded-xl p-1 }
 
 .devices{ @apply bg-green p-4 rounded-b-2xl flex flex-col gap-4 }
 
-.device{ @apply flex justify-between items-center h-16 }
+.device{ @apply flex items-center h-16 border-solid border-b-2 border-lightgreen }
+
+.device-data{ @apply basis-1/2 flex gap-4 text-white }
+
+.device-button{ @apply hover:bg-lightgreen cursor-pointer rounded-xl p-2 }
+
+.device-input{ @apply p-2 rounded-xl }
 
 .modal-bg{ @apply fixed top-0 left-0 w-full h-full flex justify-center items-center bg-opacity-50 bg-black }
 
@@ -234,7 +244,7 @@ form{ @apply w-96 flex flex-col gap-4 }
 
 label{ @apply font-bold }
 
-input, select{ @apply p-4 rounded-2xl }
+.modal input, .modal select{ @apply p-4 rounded-2xl }
 
 .button-container{ @apply flex justify-end gap-4 }
 
@@ -246,6 +256,6 @@ input, select{ @apply p-4 rounded-2xl }
 
 .new-space{ @apply font-bold hover:bg-[#d6d6d6] duration-200 p-2 rounded-2xl }
 
-.new-device{ @apply text-white font-bold p-2 rounded-2xl mt-4 hover:bg-lightgreen duration-200 }
+.new-device{ @apply text-white font-bold p-2 rounded-xl hover:bg-lightgreen duration-200 }
 
 </style>
