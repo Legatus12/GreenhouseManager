@@ -3,10 +3,7 @@
         <div class="dashboard">
             <div class="header">
                 <div class="title">
-                    <h1>greenhouses</h1>
-                    <div class="settings" title="settings">
-                        <img src="@/assets/img/settings.png">
-                    </div>
+                <h1>greenhouses</h1>
                 </div>
                 <div class="logout" @click="logout()" title="log out">
                     <img src="@/assets/img/logout.png">
@@ -30,25 +27,33 @@
                                 <div class="device-data">
                                     <div>{{ device.data.value }}</div>
                                     <div>{{ device.data.unit }}</div>
+                                    <label class="switch" v-if="device.data.hasOwnProperty('on')">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <div @click="device.updating = true" class="device-button">
-                                    <img src="@/assets/img/edit.png" class="w-6">
+                                <div class="settings" title="settings" @click="device.updating = true">
+                                    <img src="@/assets/img/settings.png">
                                 </div>
                             </div>
                             <div v-else class="device justify-between">
-                                <input type="text" :value="device.data.name" class="device-input">
+                                <input type="text" :placeholder="device.data.name" v-model="updatedDeviceName" class="device-input">
                                 <div class="flex">
-                                    <div @click="deleteDevice(device.id)" class="device-button">
+                                    <div @click="confirmDeleteDevice(device.id)" class="device-button">
                                         <img src="@/assets/img/trash.png" class="w-6">
                                     </div>
-                                    <div @click="device.updating = false" class="device-button">
+                                    <div @click="modifyDevice(device)" class="device-button">
                                         <img src="@/assets/img/done.png" class="w-6">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex justify-end">
-                            <button class="new-device" @click="{deviceModal = true; newDeviceSpace = space.id}">+ add new device</button>
+                        <div class="flex justify-between">
+                            <button class="space-button" @click="confirmDeleteSpace(space.id)">delete greenhouse</button>
+                            <div class="flex gap-4">
+                                <button class="space-button" @click="{sensorModal = true; newDeviceSpace = space.id}">+ add new sensor</button>
+                                <button class="space-button" @click="{executorModal = true; newDeviceSpace = space.id}">+ add new executor</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -71,21 +76,36 @@
             </div>
         </div>
     </Teleport>
-    <Teleport to="#deviceModal">
-        <div class="modal-bg" v-if="deviceModal">
+    <Teleport to="#sensorModal">
+        <div class="modal-bg" v-if="sensorModal">
             <div class="modal">
                 <form>
-                    <label>New device</label>
+                    <label>New sensor</label>
                     <input placeholder="name" v-model="newDeviceName" type="text">
-                    <select v-model="newDeviceUnit">
+                    <select v-model="newSensorUnit">
                         <option value="unit" selected disabled>unit</option>
                         <option v-for="unit in units" :value="unit.unit">{{ unit.measurement }} in {{ unit.unit }}</option>
                     </select>
                 </form>
                 <p class="message">{{ message }}</p>
                 <div class="button-container">
-                    <button @click="{deviceModal = false; message = ''}" class="cancel">cancel</button>
-                    <button @click="newDevice()" class="create">create</button>
+                    <button @click="{sensorModal = false; message = ''}" class="cancel">cancel</button>
+                    <button @click="newSensor()" class="create">create</button>
+                </div>
+            </div>
+        </div>
+    </Teleport>
+    <Teleport to="#executorModal">
+        <div class="modal-bg" v-if="executorModal">
+            <div class="modal">
+                <form>
+                    <label>New executor</label>
+                    <input placeholder="name" v-model="newDeviceName" type="text">
+                </form>
+                <p class="message">{{ message }}</p>
+                <div class="button-container">
+                    <button @click="{executorModal = false; message = ''}" class="cancel">cancel</button>
+                    <button @click="newExecutor()" class="create">create</button>
                 </div>
             </div>
         </div>
@@ -102,7 +122,7 @@ import { useRouter } from 'vue-router'
 
 import { useStore } from '@/stores/user.js'
 
-import { getSpaces, getDevices, addSpace, addDevice, deleteDevice, getUnits } from '@/firebase.js'
+import { getSpaces, getDevices, addSpace, deleteSpace, addDevice, deleteDevice, updateDevice, getUnits } from '@/firebase.js'
 
 //
 
@@ -118,13 +138,15 @@ const devices = ref([])
 const units = ref([])
 
 const spaceModal = ref(false)
-const deviceModal = ref(false)
+const sensorModal = ref(false)
+const executorModal = ref(false)
 
 const newSpaceName = ref('')
 
 const newDeviceName = ref('')
-const newDeviceUnit = ref('unit')
+const newSensorUnit = ref('unit')
 const newDeviceSpace = ref('')
+const updatedDeviceName = ref('')
 
 const message = ref('')
 
@@ -141,27 +163,64 @@ const newSpace = () => {
     else message.value = 'your new greenhouse needs a name !'
 }
 
-const newDevice = () => {
+const newSensor = () => {
     if(newDeviceName.value == '')
         message.value = 'your new device needs a name !'
-    else if(newDeviceUnit.value == 'unit')
+    else if(newSensorUnit.value == 'unit')
         message.value = 'select an unit to measure'
     else {
         addDevice({
+            type: 'sensor',
             name: newDeviceName.value,
             space: newDeviceSpace.value,
             value: '-',
-            unit: newDeviceUnit.value,
+            unit: newSensorUnit.value,
             user: user.getID()
         })
         newDeviceName.value = ''
-        newDeviceUnit.value = 'unit'
+        newSensorUnit.value = 'unit'
         newDeviceSpace.value = ''
         //
-        deviceModal.value = false
+        sensorModal.value = false
     }
 }
 
+const newExecutor = () => {
+    if(newDeviceName.value == '')
+        message.value = 'your new device needs a name !'
+    else {
+        addDevice({
+            type: 'executor',
+            name: newDeviceName.value,
+            space: newDeviceSpace.value,
+            on: false,
+            user: user.getID()
+        })
+        newDeviceName.value = ''
+        newDeviceSpace.value = ''
+        //
+        executorModal.value = false
+    }
+}
+
+const modifyDevice = (device) => {
+    if(updatedDeviceName.value == '')
+        alert('name is empty')
+    else {
+        updateDevice(device.id, { name: updatedDeviceName.value })
+        device.updating = false
+    }
+}
+
+const confirmDeleteDevice = (id) => {
+    if(confirm('continue deleting?'))
+        deleteDevice(id)
+}
+
+const confirmDeleteSpace = (id) => {
+    if(confirm('continue deleting?'))
+        deleteSpace(id)
+}
 
 const loadSpaces = () => {
     getSpaces(user.getID(), (spaceDocs) => {
@@ -208,11 +267,11 @@ const logout = () => {
 
 .header{ @apply w-full flex justify-between items-center p-8 bg-green }
 
-.title{ @apply flex gap-8 items-center text-4xl text-white font-bold }
+.title{ @apply text-4xl text-white font-bold }
 
-.settings{ @apply hover:rotate-90 duration-300 cursor-pointer }
+.settings{ @apply w-8 hover:rotate-90 duration-300 cursor-pointer }
 
-.logout{ @apply hover:scale-125 duration-300 cursor-pointer }
+.logout{ @apply hover:scale-125 duration-300 cursor-pointer w-8 }
 
 .spaces{ @apply w-full h-full overflow-y-auto p-12 flex flex-col gap-4 }
 
@@ -228,7 +287,7 @@ const logout = () => {
 
 .device{ @apply flex items-center h-16 border-solid border-b-2 border-lightgreen }
 
-.device-data{ @apply basis-1/2 flex gap-4 text-white }
+.device-data{ @apply basis-1/2 flex gap-4 text-white font-bold }
 
 .device-button{ @apply hover:bg-lightgreen cursor-pointer rounded-xl p-2 }
 
@@ -256,6 +315,71 @@ label{ @apply font-bold }
 
 .new-space{ @apply font-bold hover:bg-[#d6d6d6] duration-200 p-2 rounded-2xl }
 
-.new-device{ @apply text-white font-bold p-2 rounded-xl hover:bg-lightgreen duration-200 }
+.space-button{ @apply text-white p-2 rounded-xl hover:bg-lightgreen duration-200 }
+
+.switch, .switch input, .slider, .slider::before{ @apply rounded-2xl }
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #264a33;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #86cba2;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #86cba2;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
 
 </style>

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, onSnapshot, doc, query, where, addDoc, deleteDoc } from 'firebase/firestore'
+import { getFirestore, collection, onSnapshot, doc, query, where, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
 export const firebaseApp = initializeApp({
     apiKey: "AIzaSyA2S2l83X8pdsg1V_WgAuy01JJyJeg39fI",
@@ -18,10 +18,16 @@ export const addUser = (user) => addDoc(collection(db, 'users'), user)
 
 export const getSpaces = (user, callback) => onSnapshot(query(collection(db, 'spaces'), where("user", "==", user)), callback)
 export const addSpace = (space) => addDoc(collection(db, 'spaces'), space)
-
+export const deleteSpace = (id) => {
+    onSnapshot(query(collection(db, 'devices'), where("space", "==", id)), (docs) => {
+        docs.forEach(deviceDoc => deleteDoc(doc(db, 'devices', deviceDoc.id)))
+    })
+    deleteDoc(doc(db, 'spaces', id))
+}
 export const getDevices = (user, callback) => onSnapshot(query(collection(db, 'devices'), where("user", "==", user)), callback)
 export const addDevice = (device) => addDoc(collection(db, 'devices'), device)
 export const deleteDevice = (id) => deleteDoc(doc(db, 'devices', id))
+export const updateDevice = (id, device) => updateDoc(doc(db, "devices", id), device)
 
 
 export const getUnits = (callback) => onSnapshot(collection(db, 'units'), callback)
