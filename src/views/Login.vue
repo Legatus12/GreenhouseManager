@@ -45,6 +45,7 @@ const login = () => {
                 userDocs.forEach(userDoc => {
                     if(password.value === userDoc.data().password){
                         user.setID(userDoc.id)
+                        user.setUsername(userDoc.data().username)
                         router.push({ name: 'dashboard' })
                     } else message.value = 'invalid password'
                 })

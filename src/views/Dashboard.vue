@@ -3,7 +3,7 @@
         <div class="dashboard">
             <div class="header">
                 <div class="title">
-                <h1>greenhouses</h1>
+                <h1>{{ user.getUsername() }}'s greenhouses</h1>
                 </div>
                 <div class="logout" @click="logout()" title="log out">
                     <img src="@/assets/img/logout.png">
@@ -25,11 +25,11 @@
                             <div v-if="!device.updating" class="device">
                                 <h1 class="name">{{ device.data.name }}</h1>
                                 <div class="device-data">
-                                    <div>{{ device.data.value }}</div>
-                                    <div>{{ device.data.unit }}</div>
-                                    <label class="switch" v-if="device.data.hasOwnProperty('on')">
-                                        <input type="checkbox">
-                                        <span class="slider"></span>
+                                    <div v-if="device.data.hasOwnProperty('value')">{{ device.data.value }}</div>
+                                    <div v-if="device.data.hasOwnProperty('unit')">{{ device.data.unit }}</div>
+                                    <label v-if="device.data.hasOwnProperty('on')" class="switch">
+                                        <input type="checkbox" :checked="device.data.on" @click="toggle(device)">
+                                        <span class="slider round"></span>
                                     </label>
                                 </div>
                                 <div class="settings" title="settings" @click="device.updating = true">
@@ -39,11 +39,14 @@
                             <div v-else class="device justify-between">
                                 <input type="text" :placeholder="device.data.name" v-model="updatedDeviceName" class="device-input">
                                 <div class="flex">
+                                    <div @click="modifyDevice(device)" class="device-button">
+                                        <img src="@/assets/img/done.png" class="w-6">
+                                    </div>
                                     <div @click="confirmDeleteDevice(device.id)" class="device-button">
                                         <img src="@/assets/img/trash.png" class="w-6">
                                     </div>
-                                    <div @click="modifyDevice(device)" class="device-button">
-                                        <img src="@/assets/img/done.png" class="w-6">
+                                    <div @click="device.updating = false" class="device-button">
+                                        <img src="@/assets/img/cancel.png" class="w-6">
                                     </div>
                                 </div>
                             </div>
@@ -221,6 +224,10 @@ const confirmDeleteSpace = (id) => {
     if(confirm('continue deleting?'))
         deleteSpace(id)
 }
+
+const toggle = (device) => updateDevice(device.id, { on: !device.data.on })
+
+//
 
 const loadSpaces = () => {
     getSpaces(user.getID(), (spaceDocs) => {
