@@ -8,7 +8,10 @@ export const useStore = defineStore('user', () => {
   const setID = (newID) => id.value = newID
   const getUsername = () => username.value
   const setUsername = (newUsername) => username.value = newUsername
-  const logout = () => id.value = null
+  const logout = () => {
+    id.value = null
+    username.value = null
+  }
 
   return { getID, setID, getUsername, setUsername, logout }
 })

@@ -2,13 +2,13 @@ import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, onSnapshot, doc, query, where, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
 export const firebaseApp = initializeApp({
-    apiKey: "AIzaSyA2S2l83X8pdsg1V_WgAuy01JJyJeg39fI",
-    authDomain: "greenhouse-fb.firebaseapp.com",
-    projectId: "greenhouse-fb",
-    storageBucket: "greenhouse-fb.appspot.com",
-    messagingSenderId: "954983107239",
-    appId: "1:954983107239:web:63f6cd0c3ae667ae6ea982",
-    measurementId: "G-YDPE7NFG0V"
+    apiKey: "AIzaSyAdChTp2cjnZCss2dMrv56HOol-e7ZfeD0",
+    authDomain: "virtualspaces-fb.firebaseapp.com",
+    projectId: "virtualspaces-fb",
+    storageBucket: "virtualspaces-fb.appspot.com",
+    messagingSenderId: "12888717214",
+    appId: "1:12888717214:web:39c083fe310f43cad7488f",
+    measurementId: "G-YQMMVLYYP4"
 })
 
 const db = getFirestore(firebaseApp)
@@ -20,7 +20,7 @@ export const getSpaces = (user, callback) => onSnapshot(query(collection(db, 'sp
 export const addSpace = (space) => addDoc(collection(db, 'spaces'), space)
 export const deleteSpace = (id) => {
     onSnapshot(query(collection(db, 'devices'), where("space", "==", id)), (docs) => {
-        docs.forEach(deviceDoc => deleteDoc(doc(db, 'devices', deviceDoc.id)))
+        docs.forEach(deviceDoc => deleteDoc(doc(db, 'devices', deviceDoc.id))) // He optado por la opción de borrar todos los dispositivos de un espacio borrado
     })
     deleteDoc(doc(db, 'spaces', id))
 }
@@ -28,6 +28,5 @@ export const getDevices = (user, callback) => onSnapshot(query(collection(db, 'd
 export const addDevice = (device) => addDoc(collection(db, 'devices'), device)
 export const deleteDevice = (id) => deleteDoc(doc(db, 'devices', id))
 export const updateDevice = (id, device) => updateDoc(doc(db, "devices", id), device)
-
 
 export const getUnits = (callback) => onSnapshot(collection(db, 'units'), callback)
