@@ -63,8 +63,8 @@
                         <div class="flex justify-between">
                             <button class="space-button" @click="confirmDeleteSpace(space.id)">borrar espacio</button>
                             <div class="flex gap-4">
-                                <button class="space-button" @click="{sensorModal = true; newDeviceSpace = space.id}">+ añadir sensor</button>
-                                <button class="space-button" @click="{executorModal = true; newDeviceSpace = space.id}">+ añadir ejecutor</button>
+                                <button class="space-button" @click="{sensorModal = true; newDeviceSpace = {id: space.id, name: space.name}}">+ añadir sensor</button>
+                                <button class="space-button" @click="{executorModal = true; newDeviceSpace = {id: space.id, name: space.name}}">+ añadir ejecutor</button>
                             </div>
                         </div>
                     </div>
@@ -83,8 +83,8 @@
                 </form>
                 <p class="message">{{ message }}</p>
                 <div class="button-container">
-                    <button @click="{spaceModal = false; message = ''}" class="cancel">cancel</button>
-                    <button @click="newSpace()" class="create">create</button>
+                    <button @click="closeModal()" class="cancel">cancelar</button>
+                    <button @click="newSpace()" class="create">añadir</button>
                 </div>
             </div>
         </div>
@@ -94,8 +94,9 @@
         <div class="modal-bg" v-if="sensorModal">
             <div class="modal">
                 <form>
-                    <label>Nuevo sensor</label>
+                    <label>Creando nuevo sensor en "{{ newDeviceSpace.name }}".</label>
                     <input placeholder="nombre" v-model="newDeviceName" type="text">
+                    <label>¿Qué va a medir este sensor?</label>
                     <select v-model="newSensorUnit">
                         <option value="unidad" selected disabled>unidad</option>
                         <option v-for="unit in units" :value="unit.unit">{{ unit.measurement }} en {{ unit.unit }}</option>
@@ -103,8 +104,8 @@
                 </form>
                 <p class="message">{{ message }}</p>
                 <div class="button-container">
-                    <button @click="{sensorModal = false; message = ''}" class="cancel">cancel</button>
-                    <button @click="newSensor()" class="create">create</button>
+                    <button @click="closeModal()" class="cancel">cancelar</button>
+                    <button @click="newSensor()" class="create">añadir</button>
                 </div>
             </div>
         </div>
@@ -114,13 +115,13 @@
         <div class="modal-bg" v-if="executorModal">
             <div class="modal">
                 <form>
-                    <label>Nuevo ejecutor</label>
+                    <label>Creando nuevo ejecutor en "{{ newDeviceSpace.name }}".</label>
                     <input placeholder="nombre" v-model="newDeviceName" type="text">
                 </form>
                 <p class="message">{{ message }}</p>
                 <div class="button-container">
-                    <button @click="{executorModal = false; message = ''}" class="cancel">cancel</button>
-                    <button @click="newExecutor()" class="create">create</button>
+                    <button @click="closeModal()" class="cancel">cancelar</button>
+                    <button @click="newExecutor()" class="create">añadir</button>
                 </div>
             </div>
         </div>
@@ -159,7 +160,7 @@ const newSpaceName = ref('') // v-model del input del nuevo nombre que tiene un 
 const newDeviceName = ref('') // v-model del input del nuevo nombre que tiene un dispositivo creado
 const updatedDeviceName = ref('') // v-model del input del nuevo nombre que tiene un dispositivo editado
 const newSensorUnit = ref('unidad') // v-model del input del nuevo parámetro que mide un dispositivo creado
-const newDeviceSpace = ref('') // id del espacio a asignar a la hora de crear un nuevo dispositivo
+const newDeviceSpace = ref({}) // id y nombre del espacio a asignar a la hora de crear un nuevo dispositivo
 
 const units = ref([]) // unidades de medida utlizadas en la creacion de sensores
 
@@ -171,9 +172,7 @@ const newSpace = () => {
             name: newSpaceName.value,
             user: user.getID()
         })
-        newSpaceName.value = ''
-        //
-        spaceModal.value = false
+        closeModal()
     }
     else message.value = '¡Tu nuevo espacio necesita un nombre!'
 }
@@ -187,16 +186,12 @@ const newSensor = () => {
         addDevice({
             type: 'sensor',
             name: newDeviceName.value,
-            space: newDeviceSpace.value,
+            space: newDeviceSpace.value.id,
             value: '-',
             unit: newSensorUnit.value,
             user: user.getID()
         })
-        newDeviceName.value = ''
-        newSensorUnit.value = 'unidad'
-        newDeviceSpace.value = ''
-        //
-        sensorModal.value = false
+        closeModal()
     }
 }
 
@@ -205,17 +200,25 @@ const newExecutor = () => {
         message.value = '¡Tu nuevo ejecutor necesita necesita un nombre!'
     else {
         addDevice({
-            type: 'executor',
+            type: 'ejecutor',
             name: newDeviceName.value,
-            space: newDeviceSpace.value,
+            space: newDeviceSpace.value.id,
             on: false,
             user: user.getID()
         })
-        newDeviceName.value = ''
-        newDeviceSpace.value = ''
-        //
-        executorModal.value = false
+        closeModal()
     }
+}
+
+const closeModal = () => {
+    newSpaceName.value = ''
+    newDeviceName.value = ''
+    newDeviceSpace.value = {}
+    newSensorUnit.value = 'unidad'
+    spaceModal.value = false
+    sensorModal.value = false
+    executorModal.value = false
+    message.value = ''
 }
 
 const modifyDevice = (device) => {
