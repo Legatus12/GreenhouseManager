@@ -6,7 +6,7 @@
                 <div class="title">
                 <h1>Espacios de <span class="font-bold">{{ user.getUsername() }}</span></h1>
                 </div>
-                <div class="logout" @click="logout()" title="log out">
+                <div class="logout" @click="logout()" title="cerrar sesión">
                     <img src="@/assets/img/logout.png">
                 </div>
             </div>
