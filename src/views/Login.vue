@@ -51,7 +51,7 @@ const login = () => {
                 })
             } else message.value = 'el usuario no existe'
         })
-    } else message.value = 'el campo usuario no puede estar vacío'
+    } else message.value = 'el campo usuario está vacío'
 }
 
 </script>

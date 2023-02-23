@@ -35,7 +35,11 @@ const username = ref("")
 const password = ref("")
 
 const signup = () => {
-    if(username.value != "" || password.value != ""){
+    if(username.value == "")
+        message.value = 'introduce un nombre de usuario'
+    else if(password.value == "")
+        message.value = 'introduce una contraseña'
+    else {
         getUser(username.value, async(docs) => {
             if(docs.size < 1){
                 await addUser({
@@ -45,7 +49,7 @@ const signup = () => {
                 router.push({ name: 'login' })
             } else message.value = 'el usuario ya existe'
         })
-    } else message.value = 'hay campos vacíos'
+    }
 }
 
 </script>

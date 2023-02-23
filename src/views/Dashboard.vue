@@ -14,7 +14,7 @@
             <div class="spaces">
                 <div v-for="space in spaces" class="space">
                     <div class="space-header">
-                        <div class="flex gap-8 items-center">
+                        <div class="flex gap-4 items-center">
                             <h1 class="space-name">{{ space.name }}</h1>
                             <h1 class="id">{{ space.id }}</h1>
                         </div>
@@ -28,18 +28,23 @@
                         <div v-for="device in devices.filter(x => x.data.space == space.id)">
                             <!--dispositivo-->
                             <div v-if="!device.updating" class="device">
-                                <div class="w-96">
-                                    <h2 class="name" @click="openDevice(device.id)">{{ device.data.name }}</h2>
+                                <div class="device-info">
+                                    <h2 class="name">{{ device.data.name }}</h2>
+                                    <h2 class="id">{{ device.id }}</h2>
                                 </div>
                                 <div class="device-data">
-                                    <div v-if="device.data.hasOwnProperty('value')">{{ device.data.value }}</div>
-                                    <div v-if="device.data.hasOwnProperty('unit')">{{ device.data.unit }}</div>
-                                    <label v-if="device.data.hasOwnProperty('on')" class="switch">
-                                        <input type="checkbox" :checked="device.data.on" @click="toggle(device)">
-                                        <span class="slider round"></span>
-                                    </label>
+                                    <div v-if="device.data.type == 'sensor'">
+                                        {{ device.data.value }} {{ device.data.unit }}
+                                    </div>
+                                    <div v-if="device.data.type == 'ejecutor'" class="flex items-center gap-4">
+                                        <label class="switch">
+                                            <input type="checkbox" :checked="device.data.on" @click="toggle(device)">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <p class="font-light text-sm">última modificación: </p><p class="text-sm"> {{ device.data.date }}</p>
+                                    </div>
                                 </div>
-                                <div class="settings" title="settings" @click="device.updating = true">
+                                <div class="settings" title="settings" @click="{devices.map(x => x.updating = false); device.updating = true}">
                                     <img src="@/assets/img/settings.png">
                                 </div>
                             </div>
@@ -94,7 +99,7 @@
         <div class="modal-bg" v-if="sensorModal">
             <div class="modal">
                 <form>
-                    <label>Creando nuevo sensor en "{{ newDeviceSpace.name }}".</label>
+                    <label>Creando nuevo sensor en "{{ newDeviceSpace.name }}"</label>
                     <input placeholder="nombre" v-model="newDeviceName" type="text">
                     <label>¿Qué va a medir este sensor?</label>
                     <select v-model="newSensorUnit">
@@ -115,7 +120,7 @@
         <div class="modal-bg" v-if="executorModal">
             <div class="modal">
                 <form>
-                    <label>Creando nuevo ejecutor en "{{ newDeviceSpace.name }}".</label>
+                    <label>Creando nuevo ejecutor en "{{ newDeviceSpace.name }}"</label>
                     <input placeholder="nombre" v-model="newDeviceName" type="text">
                 </form>
                 <p class="message">{{ message }}</p>
@@ -204,7 +209,8 @@ const newExecutor = () => {
             name: newDeviceName.value,
             space: newDeviceSpace.value.id,
             on: false,
-            user: user.getID()
+            user: user.getID(),
+            date: '-'
         })
         closeModal()
     }
@@ -241,8 +247,12 @@ const confirmDeleteSpace = (id) => {
         deleteSpace(id)
 }
 
-const toggle = (device) => updateDevice(device.id, { on: !device.data.on })
+const toggle = (device) => updateDevice(device.id, { on: !device.data.on, date: generateDate() })
 
+const generateDate = () => {
+    const date = new Date()
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth()+1).padStart(2, '0')}/${String(date.getFullYear()).substring(2)} - ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`
+}
 
 // obtencion de los espacios de un usuario
 const loadSpaces = () => {
@@ -278,13 +288,11 @@ onMounted(() => {
 
 //
 
-const openDevice = (id) =>{
-    window.open(`http://localhost:5174/device/${id}`)
-}
-
 const logout = () => {
-    user.logout()
-    router.push({ name: 'login' })
+    if(confirm('¿desea cerrar la sesión?')){
+        user.logout()
+        router.push({ name: 'login' })
+    }
 }
 
 </script>
@@ -308,9 +316,9 @@ const logout = () => {
 
 .space-header{ @apply bg-darkgreen p-4 flex justify-between items-center }
 
-.name{ @apply w-fit hover:cursor-pointer hover:bg-lightgreen p-2 rounded-2xl text-xl text-white font-bold }
+.name{ @apply text-xl text-white font-bold }
 
-.id{  @apply text-[#d6d6d6] font-thin }
+.id{  @apply text-[#d6d6d6] text-sm font-thin }
 
 .toggle{ @apply hover:bg-[#2f5d40] duration-200 cursor-pointer rounded-xl p-1 }
 
@@ -318,7 +326,9 @@ const logout = () => {
 
 .device{ @apply flex items-center h-16 border-solid border-b-2 border-lightgreen }
 
-.device-data{ @apply w-full flex gap-4 text-white font-bold }
+.device-info{ @apply basis-1/2 flex items-center gap-4 }
+
+.device-data{ @apply basis-1/2 flex gap-4 text-white font-bold }
 
 .device-button{ @apply hover:bg-lightgreen cursor-pointer rounded-xl p-2 }
 
