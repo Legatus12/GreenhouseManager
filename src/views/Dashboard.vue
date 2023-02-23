@@ -13,8 +13,8 @@
             <!--espacios-->
             <div class="spaces">
                 <div v-for="space in spaces" class="space">
-                    <div class="space-header">
-                        <div class="flex gap-4 items-center">
+                    <div class="space-header" :class="space.control ? 'rounded-t-2xl' : 'rounded-2xl'">
+                        <div class="space-info">
                             <h1 class="space-name">{{ space.name }}</h1>
                             <h1 class="id">{{ space.id }}</h1>
                         </div>
@@ -33,19 +33,21 @@
                                     <h2 class="id">{{ device.id }}</h2>
                                 </div>
                                 <div class="device-data">
-                                    <div v-if="device.data.type == 'sensor'">
-                                        {{ device.data.value }} {{ device.data.unit }}
+                                    <div>
+                                        <div v-if="device.data.type == 'sensor'">
+                                            {{ device.data.value }} {{ device.data.unit }}
+                                        </div>
+                                        <div v-if="device.data.type == 'ejecutor'" class="flex flex-col md:flex-row md:items-center gap-4">
+                                            <label class="switch">
+                                                <input type="checkbox" :checked="device.data.on" @click="toggle(device)">
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <p class="font-light text-sm">última modificación: </p><p class="text-sm"> {{ device.data.date }}</p>
+                                        </div>
                                     </div>
-                                    <div v-if="device.data.type == 'ejecutor'" class="flex items-center gap-4">
-                                        <label class="switch">
-                                            <input type="checkbox" :checked="device.data.on" @click="toggle(device)">
-                                            <span class="slider round"></span>
-                                        </label>
-                                        <p class="font-light text-sm">última modificación: </p><p class="text-sm"> {{ device.data.date }}</p>
+                                    <div class="settings" title="settings" @click="{devices.map(x => x.updating = false); device.updating = true}">
+                                        <img src="@/assets/img/settings.png">
                                     </div>
-                                </div>
-                                <div class="settings" title="settings" @click="{devices.map(x => x.updating = false); device.updating = true}">
-                                    <img src="@/assets/img/settings.png">
                                 </div>
                             </div>
                             <!--dispositivo siendo editado-->
@@ -312,23 +314,25 @@ const logout = () => {
 
 .space-name{ @apply text-3xl text-white font-black }
 
-.spaces{ @apply w-full h-full overflow-y-auto p-12 flex flex-col gap-4 }
+.space-info{ @apply flex flex-col md:flex-row gap-4 md:items-center }
+
+.spaces{ @apply w-full h-full overflow-y-auto p-12 flex flex-col gap-6 }
 
 .space-header{ @apply bg-darkgreen p-4 flex justify-between items-center }
 
 .name{ @apply text-xl text-white font-bold }
 
-.id{  @apply text-[#d6d6d6] text-sm font-thin }
+.id{  @apply hidden md:inline-block text-[#d6d6d6] text-sm font-thin }
 
 .toggle{ @apply hover:bg-[#2f5d40] duration-200 cursor-pointer rounded-xl p-1 }
 
 .devices{ @apply bg-green p-4 rounded-b-2xl flex flex-col gap-4 }
 
-.device{ @apply flex items-center h-16 border-solid border-b-2 border-lightgreen }
+.device{ @apply flex flex-col lg:flex-row items-center p-4 gap-2 lg:gap-0 border-solid border-b-2 border-lightgreen }
 
-.device-info{ @apply basis-1/2 flex items-center gap-4 }
+.device-info{ @apply w-full flex flex-col md:flex-row md:items-center gap-4 }
 
-.device-data{ @apply basis-1/2 flex gap-4 text-white font-bold }
+.device-data{ @apply w-full flex justify-between items-end text-white font-bold }
 
 .device-button{ @apply hover:bg-lightgreen cursor-pointer rounded-xl p-2 }
 
@@ -336,11 +340,11 @@ const logout = () => {
 
 .modal-bg{ @apply fixed top-0 left-0 w-full h-full flex justify-center items-center bg-opacity-50 bg-black }
 
-.modal{ @apply relative bg-white p-12 flex flex-col gap-8 rounded-2xl }
+.modal{ @apply w-full md:w-fit relative bg-white m-4 p-4 md:p-12 flex flex-col gap-8 rounded-2xl }
 
 .message{ @apply text-[#f1121f] h-4 }
 
-form{ @apply w-96 flex flex-col gap-4 }
+form{ @apply w-full md:w-96 flex flex-col gap-4 }
 
 label{ @apply font-bold }
 
@@ -365,7 +369,7 @@ label{ @apply font-bold }
   position: relative;
   display: inline-block;
   width: 60px;
-  height: 34px;
+  height: 32px;
 }
 
 /* Hide default HTML checkbox */
@@ -391,8 +395,8 @@ label{ @apply font-bold }
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
+  height: 24px;
+  width: 24px;
   left: 4px;
   bottom: 4px;
   background-color: #264a33;
