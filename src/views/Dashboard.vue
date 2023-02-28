@@ -54,8 +54,11 @@
                             <div v-else class="device justify-between">
                                 <input type="text" :placeholder="device.data.name" v-model="updatedDeviceName" class="device-input">
                                 <div class="flex">
-                                    <div @click="modifyDevice(device)" class="device-button">
+                                    <div @click="modifyDeviceName(device)" class="device-button">
                                         <img src="@/assets/img/done.png" class="w-6">
+                                    </div>
+                                    <div @click="openSpaceSwitch(device)" class="device-button">
+                                        <img src="@/assets/img/switch.png" class="w-6">
                                     </div>
                                     <div @click="confirmDeleteDevice(device.id)" class="device-button">
                                         <img src="@/assets/img/trash.png" class="w-6">
@@ -70,8 +73,8 @@
                         <div class="flex justify-between">
                             <button class="space-button" @click="confirmDeleteSpace(space.id)">borrar espacio</button>
                             <div class="flex gap-4">
-                                <button class="space-button" @click="{sensorModal = true; newDeviceSpace = {id: space.id, name: space.name}}">+ añadir sensor</button>
-                                <button class="space-button" @click="{executorModal = true; newDeviceSpace = {id: space.id, name: space.name}}">+ añadir ejecutor</button>
+                                <button class="space-button" @click="{sensorModal = true; selectedSpace = {id: space.id, name: space.name}}">+ añadir sensor</button>
+                                <button class="space-button" @click="{executorModal = true; selectedSpace = {id: space.id, name: space.name}}">+ añadir ejecutor</button>
                             </div>
                         </div>
                     </div>
@@ -101,7 +104,7 @@
         <div class="modal-bg" v-if="sensorModal">
             <div class="modal">
                 <form>
-                    <label>Creando nuevo sensor en "{{ newDeviceSpace.name }}"</label>
+                    <label>Creando nuevo sensor en "{{ selectedSpace.name }}"</label>
                     <input placeholder="nombre" v-model="newDeviceName" type="text">
                     <label>¿Qué va a medir este sensor?</label>
                     <select v-model="newSensorUnit">
@@ -122,13 +125,32 @@
         <div class="modal-bg" v-if="executorModal">
             <div class="modal">
                 <form>
-                    <label>Creando nuevo ejecutor en "{{ newDeviceSpace.name }}"</label>
+                    <label>Creando nuevo ejecutor en "{{ selectedSpace.name }}"</label>
                     <input placeholder="nombre" v-model="newDeviceName" type="text">
                 </form>
                 <p class="message">{{ message }}</p>
                 <div class="button-container">
                     <button @click="closeModal()" class="cancel">cancelar</button>
                     <button @click="newExecutor()" class="create">añadir</button>
+                </div>
+            </div>
+        </div>
+    </Teleport>
+    <!--modal de cambio de espacio de un dispositivo-->
+    <Teleport to="#switchModal">
+        <div class="modal-bg" v-if="switchModal">
+            <div class="modal">
+                <label>¿A qué espacio deseas mover este dispositivo?</label>
+                <div class="space-switch">
+                    <div v-for="space in spaces.filter(x => x.id != selectedSpace)" @click="selectSpace(space)" :class="space.selected ? 'space-selected' : 'space-not-selected'">
+                        <h1>{{ space.name }}</h1>
+                        <p>{{ space.id }}</p>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button @click="closeModal()" class="cancel">cancelar</button>
+                    <button @click="modifyDeviceSpace()" class="create" v-if="spaces.filter(x => x.selected).length > 0">confirmar</button>
+                    <button v-else class="fake">confirmar</button>
                 </div>
             </div>
         </div>
@@ -161,17 +183,21 @@ const devices = ref([]) // dispositivos de un usuario
 const spaceModal = ref(false) // control del modal de creacion de espacios
 const sensorModal = ref(false) // control del modal de creacion de sensores
 const executorModal = ref(false) // control del modal de creacion de ejecutores
+const switchModal = ref(false) // control del modal de cambio de espacio de un dispositivo
 
 const newSpaceName = ref('') // v-model del input del nuevo nombre que tiene un espacio creado
 
 const newDeviceName = ref('') // v-model del input del nuevo nombre que tiene un dispositivo creado
 const updatedDeviceName = ref('') // v-model del input del nuevo nombre que tiene un dispositivo editado
 const newSensorUnit = ref('unidad') // v-model del input del nuevo parámetro que mide un dispositivo creado
-const newDeviceSpace = ref({}) // id y nombre del espacio a asignar a la hora de crear un nuevo dispositivo
+const selectedSpace = ref({}) // espacio utilizado a la hora de crear un nuevo dispositivo
+const deviceSelected = ref({}) // dispositivo a trasladar durante un cambio de espacio
 
 const units = ref([]) // unidades de medida utlizadas en la creacion de sensores
 
 const message = ref('')
+
+//
 
 const newSpace = () => {
     if(newSpaceName.value != ''){
@@ -193,7 +219,7 @@ const newSensor = () => {
         addDevice({
             type: 'sensor',
             name: newDeviceName.value,
-            space: newDeviceSpace.value.id,
+            space: selectedSpace.value.id,
             value: '-',
             unit: newSensorUnit.value,
             user: user.getID()
@@ -209,7 +235,7 @@ const newExecutor = () => {
         addDevice({
             type: 'ejecutor',
             name: newDeviceName.value,
-            space: newDeviceSpace.value.id,
+            space: selectedSpace.value.id,
             on: false,
             user: user.getID(),
             date: '-'
@@ -221,15 +247,20 @@ const newExecutor = () => {
 const closeModal = () => {
     newSpaceName.value = ''
     newDeviceName.value = ''
-    newDeviceSpace.value = {}
+    selectedSpace.value = {}
+    deviceSelected.value = ''
     newSensorUnit.value = 'unidad'
+    spaces.value.map(x => x.selected = false)
+    //
+    message.value = ''
+    //
     spaceModal.value = false
     sensorModal.value = false
     executorModal.value = false
-    message.value = ''
+    switchModal.value = false
 }
 
-const modifyDevice = (device) => {
+const modifyDeviceName = (device) => {
     if(updatedDeviceName.value == '')
         alert('el nombre no puede estar vacío')
     else {
@@ -237,6 +268,22 @@ const modifyDevice = (device) => {
         device.updating = false
         updatedDeviceName.value = ''
     }
+}
+
+const modifyDeviceSpace = () => {
+    updateDevice(deviceSelected.value, { space: spaces.value.reduce((ac, el) => ac.selected ? ac : el ).id })
+    closeModal()
+}
+
+const openSpaceSwitch = (device) => {
+    switchModal.value = true
+    selectedSpace.value = device.data.space
+    deviceSelected.value = device.id
+}
+
+const selectSpace = (space) => {
+    spaces.value.map(x => x.selected = false)
+    space.selected = true
 }
 
 const confirmDeleteDevice = (id) => {
@@ -261,7 +308,7 @@ const loadSpaces = () => {
     getSpaces(user.getID(), (spaceDocs) => {
         spaces.value = []
         spaceDocs.forEach(spaceDoc => {
-            spaces.value.push({id: spaceDoc.id, name: spaceDoc.data().name, control : false})
+            spaces.value.push({id: spaceDoc.id, name: spaceDoc.data().name, control : false, selected: false})
         })
     })
 }
@@ -328,7 +375,7 @@ const logout = () => {
 
 .devices{ @apply bg-green p-4 rounded-b-2xl flex flex-col gap-4 }
 
-.device{ @apply flex flex-col lg:flex-row items-center p-4 gap-2 lg:gap-0 border-solid border-b-2 border-lightgreen }
+.device{ @apply flex flex-col h-16 lg:flex-row items-center p-4 gap-2 lg:gap-0 border-solid border-b-2 border-lightgreen }
 
 .device-info{ @apply w-full flex flex-col md:flex-row md:items-center gap-4 }
 
@@ -352,12 +399,19 @@ label{ @apply font-bold }
 
 .button-container{ @apply flex justify-end gap-4 }
 
-.cancel, .create{ @apply duration-200 p-4 rounded-2xl }
+.space-switch{ @apply flex flex-col gap-2 }
+
+.space-not-selected{ @apply flex gap-4 p-4 rounded-2xl hover:bg-[#d6d6d6] cursor-pointer }
+
+.space-selected{ @apply flex gap-4 p-4 rounded-2xl text-white bg-darkgreen }
+
+.cancel, .create, .fake{ @apply duration-200 p-4 rounded-2xl }
 
 .cancel{ @apply hover:bg-[#d6d6d6] }
 
 .create{ @apply text-white bg-green hover:bg-lightgreen }
 
+.fake{ @apply text-[#646464] cursor-not-allowed }
 .new-space{ @apply hover:bg-[#d6d6d6] duration-200 p-2 rounded-2xl }
 
 .space-button{ @apply text-white p-2 rounded-xl hover:bg-lightgreen duration-200 }
